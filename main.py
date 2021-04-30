@@ -23,7 +23,7 @@ timeToRun = datetime.now()
 """
 Configure experimental variables
 """
-initPop = 20
+experimentPopulation = 20
 experimentCount = 9
 trialCount = 1000
 
@@ -33,9 +33,9 @@ for x in range(experimentCount):
     gens.append(0)
     successes.append(0)
     for y in range(trialCount):
-        startAllelePop = (initPop / (experimentCount + 1)) * (x + 1)
+        startAllelePop = (experimentPopulation / (experimentCount + 1)) * (x + 1)
         current_seed = y
-        allele_counts = neutral_moran(initPop, startAllelePop, current_seed)
+        allele_counts = neutral_moran(experimentPopulation, startAllelePop, current_seed)
         if y < 10:  # only save first 10 graphs
             plt.clf()  # clear figure
             plt.cla()  # clear axes
@@ -43,32 +43,37 @@ for x in range(experimentCount):
             plt.xlabel("Generations")
             plt.ylabel("Population")
             plt.title(
-                "Neutral Moran Population:{} Starting Allele Population:{}, Seed:{}".format(initPop, startAllelePop,
+                "Neutral Moran Population:{} Starting Allele Population:{}, Seed:{}".format(experimentPopulation,
+                                                                                            startAllelePop,
                                                                                             current_seed))
             plt.savefig(
-                "graphs/Neutral Moran Pop:{} Start Allele Pop:{}, Seed:{}".format(initPop, startAllelePop,
+                "graphs/Neutral Moran Pop:{} Start Allele Pop:{}, Seed:{}".format(experimentPopulation, startAllelePop,
                                                                                   current_seed))
         gens[x] += len(allele_counts)
         if allele_counts[-1][0] != 0:
             successes[x] += 1
-# for x in successes:
-#     print "Successes: {}".format(x)
-# for x in gens:
-#     print "Gens: {}".format(x)
-"""
-TODO make 2 graphs
-    1: plotting success % as a function of starting %
-    2: plotting generations as a function of starting % (with a given population)
-"""
-#   calc avg gens per experiment
-avgGens = []
-for x in gens:
-    avgGens.append(x / trialCount)
+
 #   calc avg success rate per experiment
 avgSuccessRates = []
 for x in successes:
     avgSuccessRates.append(float(x) / float(trialCount))
-print avgGens
-print avgSuccessRates
-print successes
+startingRatios = []
+for x in range(len(successes)):
+    startingRatios.append(float(x + 1) / float(experimentCount + 1))
+
+plt.clf()
+plt.cla()
+plt.plot(startingRatios, avgSuccessRates, 'ro')
+plt.plot([.1, .2, .3, .4, .5, .6, .7, .8, .9], [.1, .2, .3, .4, .5, .6, .7, .8, .9], 'b-')
+plt.axis([0, 1, 0, 1])
+plt.xlabel("Starting %")
+plt.ylabel("Fixation Rate")
+plt.title("Fixation Rate vs. Starting %")
+plt.savefig(
+    "Fixation Rate Pop:{} Exp Count:{} Trial Count:{}".format(experimentPopulation, experimentCount, trialCount))
+#   calc avg gens per experiment
+avgGens = []
+for x in gens:
+    avgGens.append(x / trialCount)
+
 print "Completed in {} seconds.".format((datetime.now() - timeToRun).seconds)
