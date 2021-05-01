@@ -1,23 +1,23 @@
 from datetime import datetime
-
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def neutral_moran(N, i=1, seed=0):  # the moran processes iteration for a given population a given neutral allele
+def moran_neutral(N, i, seed):
     """
+    A moran processes iteration for a given population a given neutral allele
     Return the population counts for the Moran process as an ordered pair of each population
         with neutral drift at each iteration
     """
-    pop = [0 for _ in range(i)] + [1 for _ in range(N - i)]
-    counts = [(pop.count(0), pop.count(1))]
+    populationModel = [0 for _ in range(i)] + [1 for _ in range(N - i)]
+    populationModelOrderedPairs = [(populationModel.count(0), populationModel.count(1))]
     np.random.seed(seed)
-    while len(set(pop)) == 2:
+    while len(set(populationModel)) > 1:
         reproduce_index = np.random.randint(N)
         eliminate_index = np.random.randint(N)
-        pop[eliminate_index] = pop[reproduce_index]
-        counts.append((pop.count(0), pop.count(1)))
-    return counts
+        populationModel[eliminate_index] = populationModel[reproduce_index]
+        populationModelOrderedPairs.append((populationModel.count(0), populationModel.count(1)))
+    return populationModelOrderedPairs
 
 
 def sum_1(N, i):
@@ -84,8 +84,8 @@ Each experiment will consist of multiple trials to gain an average. Each trial w
     order to make these experiments repeatable
 Because there are a large number of trials, only the first 5 of each are saved as graphs to reduce file count
 """
-population = 10
-experimentCount = 9
+population = 20
+experimentCount = 19
 trialCount = 100000
 graphsSavedPerTrail = 10
 
@@ -111,7 +111,7 @@ for x in range(experimentCount):
     startingAlleleRatios.append(float(alleleStartingPopulation[x]) / float(population))
     for y in range(trialCount):
         current_seed = y
-        allele_counts = neutral_moran(population, alleleStartingPopulation[x], current_seed)
+        allele_counts = moran_neutral(population, alleleStartingPopulation[x], current_seed)
         if y < graphsSavedPerTrail:  # only save first 10 Neutral Drift Trial Graphs
             make_new_plot("Generations", "Population",
                           "Moran Neutral Drift N = {}, i = {}, Seed = {}".format(population,
@@ -121,10 +121,10 @@ for x in range(experimentCount):
                                                                                        alleleStartingPopulation[
                                                                                            x], current_seed),
                           allele_counts)
-        generationsUntilFixationExperiments[x] += len(allele_counts)  # stores the total generations, avg later
+        generationsUntilFixationExperiments[x] += len(allele_counts)  # stores the total generations, avg separately
         if allele_counts[-1][0] != 0:  # if the ending state is a fixation in favor of the tracked allele
             fixationCountsExperimentally[x] += 1
-    print "Experiment # {} complete in {} seconds".format(x+1, (datetime.now()-experimentRunTime).seconds)
+    print "Experiment # {} complete in {} seconds".format(x + 1, (datetime.now() - experimentRunTime).seconds)
 
 """
 The expected fixation ratio is calculated
