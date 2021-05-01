@@ -87,7 +87,7 @@ Because there are a large number of trials, only the first 5 of each are saved a
 population = 20
 experimentCount = 19
 trialCount = 100000
-graphsSavedPerTrail = 10
+graphsSavedPerExperiment = 10
 
 """
 The following list variables will keep track of results throughout trials for graphing and analysis
@@ -112,7 +112,7 @@ for x in range(experimentCount):
     for y in range(trialCount):
         current_seed = y
         allele_counts = moran_neutral(population, alleleStartingPopulation[x], current_seed)
-        if y < graphsSavedPerTrail:  # only save first 10 Neutral Drift Trial Graphs
+        if y < graphsSavedPerExperiment:  # only save first 10 Neutral Drift Trial Graphs
             make_new_plot("Generations", "Population",
                           "Moran Neutral Drift N = {}, i = {}, Seed = {}".format(population,
                                                                                  alleleStartingPopulation[x],
