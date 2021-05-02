@@ -20,7 +20,7 @@ def moran_neutral(N, i, seed):
     return populationModelOrderedPairs
 
 
-def sum_1(N, i):
+def sums(N, i):
     """
     used for finding expected generations
     see https://wikimedia.org/api/rest_v1/media/math/render/svg/1357d063b01000efd7f85646e6721385b9245efd
@@ -28,18 +28,9 @@ def sum_1(N, i):
     sum1 = 0
     for j in range(1, i + 1):
         sum1 += float(N - i) / float(N - j)
-    return sum1
-
-
-def sum_2(N, i):
-    """
-    used for finding expected generations
-    see https://wikimedia.org/api/rest_v1/media/math/render/svg/1357d063b01000efd7f85646e6721385b9245efd
-    """
-    sum2 = 0
     for j in range(i + 1, N):
-        sum2 += float(i) / float(j)
-    return sum2
+        sum1 += float(i) / float(j)
+    return sum1
 
 
 def make_new_plot(xLabel, yLabel, title, fileName, plot1, plot1pair=None, plot1arg=None, plot2=None, plot2pair=None,
@@ -155,7 +146,7 @@ Both ratios are mapped together
 generationsMath = []
 experimentRatios = []
 for x in range(1, population):
-    generationsMath.append(population * (sum_1(population, x) + sum_2(population, x)))
+    generationsMath.append(population * sums(population, x))
     experimentRatios.append(float(x) / float(population))
 #   calc avg gens per experiment
 generationsAvg = []
