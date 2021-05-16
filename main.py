@@ -1,72 +1,9 @@
-from datetime import datetime
-import matplotlib.pyplot as plt
-import numpy as np
-
-
-def moran_neutral(N, i, seed):
-    """
-    A moran processes iteration for a given population a given neutral allele
-    Return the population counts for the Moran process as an ordered pair of each population
-        with neutral drift at each iteration
-    """
-    populationModel = [0 for _ in range(i)] + [1 for _ in range(N - i)]
-    populationModelOrderedPairs = [(populationModel.count(0), populationModel.count(1))]
-    np.random.seed(seed)
-    while len(set(populationModel)) > 1:
-        reproduce_index = np.random.randint(N)
-        eliminate_index = np.random.randint(N)
-        populationModel[eliminate_index] = populationModel[reproduce_index]
-        populationModelOrderedPairs.append((populationModel.count(0), populationModel.count(1)))
-    return populationModelOrderedPairs
-
-
-def sums(N, i):
-    """
-    used for finding expected generations
-    see https://wikimedia.org/api/rest_v1/media/math/render/svg/1357d063b01000efd7f85646e6721385b9245efd
-    """
-    sum1 = 0
-    for j in range(1, i + 1):
-        sum1 += float(N - i) / float(N - j)
-    for j in range(i + 1, N):
-        sum1 += float(i) / float(j)
-    return sum1
-
-
-def make_new_plot(xLabel, yLabel, title, fileName, plot1, plot1pair=None, plot1arg=None, plot2=None, plot2pair=None,
-                  plot2arg=None):
-    plt.clf()
-    plt.cla()
-    plt.xlabel(xLabel)
-    plt.ylabel(yLabel)
-    plt.title(title)
-    plot_flexibly(plot1, plot1pair, plot1arg)
-    if plot2 is not None:
-        plot_flexibly(plot2, plot2pair, plot2arg)
-    plt.savefig(fileName)
-
-
-def plot_flexibly(plot, pair=None, arg=None):
-    if pair is None:
-        if arg is None:
-            plt.plot(plot)
-        else:
-            plt.plot(plot, arg)
-    else:
-        if arg is None:
-            plt.plot(plot, pair)
-        else:
-            plt.plot(plot, pair, arg)
+from datetime import *
+from functions import *
+import thread
 
 
 """
-This is the start of the runtime code
-Code runtime duration is tracked to give runtime feedback when changing experimental variables
-"""
-timeToRun = datetime.now()
-
-"""
-Configure experimental variables
 Population will be fixed for the entirety of the program
 Experiment count will adjust the number of experiments preformed
 Each experiment will have a unique starting population, equally spaced between 0 and N, the fixed population
@@ -74,16 +11,17 @@ Each experiment will have a unique starting population, equally spaced between 0
 Each experiment will consist of multiple trials to gain an average. Each trial will be seeded with its trail number in
     order to make these experiments repeatable
 Because there are a large number of trials, only the first 5 of each are saved as graphs to reduce file count
+
+The following list variables will keep track of results throughout trials for graphing and analysis
+Each index is conceptually mapped to each experiment
 """
+timeToRun = datetime.now()
+
 population = 20
 experimentCount = 19
 trialCount = 100000
 graphsSavedPerExperiment = 10
 
-"""
-The following list variables will keep track of results throughout trials for graphing and analysis
-Each index is conceptually mapped to each experiment
-"""
 alleleStartingPopulation = []
 generationsUntilFixationExperiments = []
 fixationCountsExperimentally = []
@@ -94,6 +32,7 @@ The for loop contains all of the trails from all experiments
 allele_counts holds the coordinates of the current trial
 Only the first 10 trials are graphed 
 """
+
 for x in range(experimentCount):
     experimentRunTime = datetime.now()
     generationsUntilFixationExperiments.append(0)
