@@ -1,7 +1,5 @@
-from datetime import *
 from functions import *
-import thread
-
+from multiprocessing.pool import ThreadPool
 
 """
 Population will be fixed for the entirety of the program
@@ -19,42 +17,45 @@ timeToRun = datetime.now()
 
 population = 20
 experimentCount = 19
-trialCount = 100000
-graphsSavedPerExperiment = 10
+trialCount = 1000
+graphsSavedPerExperiment = 0
+
+experiment_data = []
 
 alleleStartingPopulation = []
 generationsUntilFixationExperiments = []
 fixationCountsExperimentally = []
 startingAlleleRatios = []
 
+for x in range(experimentCount):
+    experiment_data.append((0, 0, 0, 0))
+
 """
 The for loop contains all of the trails from all experiments
 allele_counts holds the coordinates of the current trial
 Only the first 10 trials are graphed 
 """
-
+thread_pool = ThreadPool(processes=experimentCount)
+known_threads = {}
 for x in range(experimentCount):
-    experimentRunTime = datetime.now()
-    generationsUntilFixationExperiments.append(0)
-    fixationCountsExperimentally.append(0)
-    alleleStartingPopulation.append(population / (experimentCount + 1) * (x + 1))
-    startingAlleleRatios.append(float(alleleStartingPopulation[x]) / float(population))
-    for y in range(trialCount):
-        current_seed = y
-        allele_counts = moran_neutral(population, alleleStartingPopulation[x], current_seed)
-        if y < graphsSavedPerExperiment:  # only save first 10 Neutral Drift Trial Graphs
-            make_new_plot("Generations", "Population",
-                          "Moran Neutral Drift N = {}, i = {}, Seed = {}".format(population,
-                                                                                 alleleStartingPopulation[x],
-                                                                                 current_seed),
-                          "Neutral Drift Trial Graphs/N = {} i = {}, Seed = {}".format(population,
-                                                                                       alleleStartingPopulation[x],
-                                                                                       current_seed),
-                          allele_counts)
-        generationsUntilFixationExperiments[x] += len(allele_counts)  # stores the total generations, avg separately
-        if allele_counts[-1][0] != 0:  # if the ending state is a fixation in favor of the tracked allele
-            fixationCountsExperimentally[x] += 1
-    print "Experiment # {} complete in {} seconds".format(x + 1, (datetime.now() - experimentRunTime).seconds)
+    known_threads[x] = thread_pool.apply_async(trial_runner, args=(
+        x, population, trialCount, graphsSavedPerExperiment, experimentCount,))
+
+thread_pool.close()
+thread_pool.join()
+
+for thread in known_threads:
+    print known_threads[thread].get()
+    alleleStartingPopulation.append(known_threads[thread].get()[0])
+    generationsUntilFixationExperiments.append(known_threads[thread].get()[1])
+    fixationCountsExperimentally.append(known_threads[thread].get()[2])
+    startingAlleleRatios.append(known_threads[thread].get()[3])
+
+for x in experiment_data:  # TODO rewrite? https://www.w3schools.com/python/python_tuples_unpack.asp
+    alleleStartingPopulation.append(x[0])
+    generationsUntilFixationExperiments.append(x[1])
+    fixationCountsExperimentally.append(x[2])
+    startingAlleleRatios.append(x[3])
 
 """
 The expected fixation ratio is calculated
